@@ -1,0 +1,32 @@
+server:
+  port: 8072
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: rewrite_path_route_posting_service
+          uri: http://posting-service:8080
+          predicates:
+            - Path=/**
+          filters:
+            - RewritePath=/(?<path>.*), /$\{path}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

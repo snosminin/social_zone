@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: posting-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            type:
+              mapping: |
+                test-model:name.snosminin.postingservice.events.model.TestEventModel,
+                create-comment-model:name.snosminin.postingservice.dto.CreateCommentDto,
+                create-follow-model:name.snosminin.postingservice.dto.CreateFollowDto,
+                create-like-model:name.snosminin.postingservice.dto.CreateLikeDto,
+                create-post-model:name.snosminin.postingservice.dto.CreatePostDto,
+                create-user-model:name.snosminin.postingservice.dto.CreateUserDto
+server:
+  port: 8080
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+  instance:
+    preferIpAddress: true

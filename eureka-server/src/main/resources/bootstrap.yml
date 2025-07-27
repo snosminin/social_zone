@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: eureka-server
+  boot:
+    admin:
+      context-path: /admin
+server:
+  port: 8070
+eureka:
+  instance:
+    hostname: eureka-server
+    nonSecurePortEnabled: true
+    nonSecurePort: 8070
+    homePageUrl: http://${eureka.instance.hostname}:8070/
+    statusPageUrl: http://${eureka.instance.hostname}:8070/actuator/info/
+    healthCheckUrl: http://${eureka.instance.hostname}:8070/actuator/health/
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    waitTimeInMsWhenSyncEmpty: 5
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

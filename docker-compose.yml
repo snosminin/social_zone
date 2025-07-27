@@ -1,0 +1,283 @@
+services:
+  database:
+    container_name: database
+    image: postgres:14.7-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE_NAME}
+      PGUSER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./db/init_scheme.sql:/docker-entrypoint-initdb.d/init_scheme.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      backend:
+        aliases:
+          - "database"
+
+
+  eureka-server:
+    image: eureka-server:0.0.1
+    container_name: eureka-server
+    build:
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+    ports:
+      - "8070:8070"
+    restart: unless-stopped
+    networks:
+      backend:
+        aliases:
+          - "eureka-server"
+
+
+  auth-service:
+    image: auth-service:0.0.1
+    container_name: auth-service
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_DATABASE_DOMAIN}:${POSTGRES_DATABASE_PORT}/${POSTGRES_DATABASE_NAME}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+    ports:
+      - "8282:8282"
+    depends_on:
+      database:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "auth-server"
+
+
+  posting-service:
+    image: posting-service:0.0.1
+    container_name: posting-service
+    build:
+      context: .
+      dockerfile: ./posting-service/Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "posting-server"
+
+
+  store-service:
+    image: store-service:0.0.1
+    container_name: store-service
+    build:
+      context: .
+      dockerfile: ./store-service/Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_DATABASE_DOMAIN}:${POSTGRES_DATABASE_PORT}/${POSTGRES_DATABASE_NAME}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+      SPRING_KAFKA_CONSUMER_GROUPID: ${KAFKA_GROUP_ID}
+    ports:
+      - "8181:8181"
+    depends_on:
+      database:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "store-server"
+
+
+  gateway:
+    image: gateway:0.0.1
+    container_name: gateway
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+    ports:
+      - "8072:8072"
+    depends_on:
+      database:
+        condition: service_healthy
+      posting-service:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    networks:
+      backend:
+        aliases:
+          - "gateway"
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.9.1
+    container_name: zookeeper
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOO_MAX_CLIENT_CNXNS: 60
+      ZOOKEEPER_SERVER_ID: 1
+    healthcheck:
+      test: "echo stat | nc localhost $$ZOOKEEPER_CLIENT_PORT"
+    networks:
+      backend:
+        aliases:
+          - "zookeeper"
+
+
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka-broker-1
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-broker-1:9092,PLAINTEXT_HOST://localhost:29092
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+    networks:
+      backend:
+        aliases:
+          - "kafka-broker-1"
+
+
+  kafka-broker-2:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka-broker-2
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+      - kafka-broker-1
+    ports:
+      - "9192:9192"
+      - "29192:29192"
+    environment:
+      - KAFKA_NODE_ID=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-broker-2:9192,PLAINTEXT_HOST://localhost:29192
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9192" ]
+    networks:
+      backend:
+        aliases:
+          - "kafka-broker-2"
+
+
+  kafka-broker-3:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: kafka-broker-3
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+      - kafka-broker-1
+      - kafka-broker-2
+    ports:
+      - "9292:9292"
+      - "29292:29292"
+    environment:
+      - KAFKA_NODE_ID=3
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-broker-3:9292,PLAINTEXT_HOST://localhost:29292
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9292" ]
+    networks:
+      backend:
+        aliases:
+          - "kafka-broker-3"
+
+
+  init-kafka:
+    image: confluentinc/cp-kafka:7.9.1
+    container_name: init-kafka
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      "
+        kafka-topics --bootstrap-server kafka-broker-1:9092 --list
+        echo -e 'Creating kafka-broker-1 topics'
+        kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic create-post-topic --replication-factor 3 --partitions 1
+        echo -e 'Successfully created the following topics:'
+        kafka-topics --bootstrap-server kafka-broker-1:9092 --list
+  
+        kafka-topics --bootstrap-server kafka-broker-2:9192 --list
+        echo -e 'Creating kafka-broker-2 topics'
+        kafka-topics --bootstrap-server kafka-broker-2:9192 --create --if-not-exists --topic create-comment-topic --replication-factor 3 --partitions 1
+        echo -e 'Successfully created the following topics:'
+        kafka-topics --bootstrap-server kafka-broker-2:9192 --list
+  
+        kafka-topics --bootstrap-server kafka-broker-3:9292 --list
+        echo -e 'Creating kafka-broker-3 topics'
+        kafka-topics --bootstrap-server kafka-broker-3:9292 --create --if-not-exists --topic create-like-topic --replication-factor 3 --partitions 1
+        kafka-topics --bootstrap-server kafka-broker-3:9292 --create --if-not-exists --topic create-follow-topic --replication-factor 3 --partitions 1
+        kafka-topics --bootstrap-server kafka-broker-3:9292 --create --if-not-exists --topic test-topic --replication-factor 3 --partitions 1
+        echo -e 'Successfully created the following topics:'
+        kafka-topics --bootstrap-server kafka-broker-3:9292 --list
+      "
+    networks:
+      backend:
+        aliases:
+          - "init-kafka"
+
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:4.1.1-SNAPSHOT
+    container_name: kafdrop
+    restart: unless-stopped
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    ports:
+      - "9000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT=kafka-broker-1:9092,kafka-broker-2:9192,kafka-broker-3:9292
+    healthcheck:
+      test: "curl -f http://localhost:9000 || exit 1"
+    networks:
+      backend:
+        aliases:
+          - "kafdrop"
+
+
+networks:
+  backend:
+    driver: bridge
