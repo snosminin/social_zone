@@ -50,6 +50,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://${EUREKA_DOMAIN}:${EUREKA_PORT}/eureka/
+      JWT_SECRET: ${SECRET_KEY}
     ports:
       - "8282:8282"
     depends_on:
@@ -237,13 +238,13 @@ services:
         kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic create-post-topic --replication-factor 3 --partitions 1
         echo -e 'Successfully created the following topics:'
         kafka-topics --bootstrap-server kafka-broker-1:9092 --list
-  
+      
         kafka-topics --bootstrap-server kafka-broker-2:9192 --list
         echo -e 'Creating kafka-broker-2 topics'
         kafka-topics --bootstrap-server kafka-broker-2:9192 --create --if-not-exists --topic create-comment-topic --replication-factor 3 --partitions 1
         echo -e 'Successfully created the following topics:'
         kafka-topics --bootstrap-server kafka-broker-2:9192 --list
-  
+      
         kafka-topics --bootstrap-server kafka-broker-3:9292 --list
         echo -e 'Creating kafka-broker-3 topics'
         kafka-topics --bootstrap-server kafka-broker-3:9292 --create --if-not-exists --topic create-like-topic --replication-factor 3 --partitions 1

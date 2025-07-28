@@ -16,6 +16,13 @@ spring:
   sql:
     init:
       platform: postgres
+
+jwt:
+  expiration:
+    access: 36000000
+    refresh: 604800000
+  secret: null #expected from docker compose
+
 server:
   port: 8282
 eureka:
