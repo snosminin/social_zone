@@ -127,6 +127,8 @@ services:
         condition: service_healthy
       posting-service:
         condition: service_started
+      auth-service:
+        condition: service_started
       eureka-server:
         condition: service_started
     networks:

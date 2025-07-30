@@ -17,12 +17,18 @@ spring:
         locator:
           enabled: false
       routes:
-        - id: rewrite_path_route_posting_service
+        - id: posting_route
           uri: http://posting-service:8080
           predicates:
-            - Path=/**
+            - Path=/posting/**
           filters:
-            - RewritePath=/(?<path>.*), /$\{path}
+            - RewritePath=/posting/(?<path>.*), /$\{path}
+        - id: auth_route
+          uri: http://auth-service:8282
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?<path>.*), /$\{path}
 
 
 management:
