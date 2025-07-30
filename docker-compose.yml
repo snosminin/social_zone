@@ -61,7 +61,7 @@ services:
     networks:
       backend:
         aliases:
-          - "auth-server"
+          - "auth-service"
 
 
   posting-service:
@@ -83,7 +83,7 @@ services:
     networks:
       backend:
         aliases:
-          - "posting-server"
+          - "posting-service"
 
 
   store-service:
@@ -109,7 +109,7 @@ services:
     networks:
       backend:
         aliases:
-          - "store-server"
+          - "store-service"
 
 
   gateway:
