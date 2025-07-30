@@ -28,13 +28,6 @@ store-service/gradlew
 store-service/gradlew.bat
 
 
-
-.gradle
-build/
-#!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
 ### STS ###
 .apt_generated
 .classpath
