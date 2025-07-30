@@ -2,31 +2,26 @@
 .idea/
 social-zone.iml
 
-auth-service/gradle/
 auth-service/.gradle/
 auth-service/build/
 auth-service/gradlew
 auth-service/gradlew.bat
 
-eureka-server/gradle/
 eureka-server/.gradle/
 eureka-server/build/
 eureka-server/gradlew
 eureka-server/gradlew.bat
 
-gateway/gradle/
 gateway/.gradle/
 gateway/build/
 gateway/gradlew
 gateway/gradlew.bat
 
-posting-service/gradle/
 posting-service/.gradle/
 posting-service/build/
 posting-service/gradlew
 posting-service/gradlew.bat
 
-store-service/gradle/
 store-service/.gradle/
 store-service/build/
 store-service/gradlew
@@ -36,7 +31,7 @@ store-service/gradlew.bat
 
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
+#!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
