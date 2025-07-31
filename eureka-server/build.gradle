@@ -25,11 +25,12 @@ repositories {
 
 dependencies {
     implementation(libs.spring.cloud.starter.bootstrap)
-
     implementation(libs.spring.cloud.starter.netflix.eureka.server)
     implementation(libs.spring.cloud.starter.loadbalancer)
+
     implementation(libs.spring.boot.starter)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.validation)
+
     implementation(libs.spring.dotenv)
 }
