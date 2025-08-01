@@ -50,8 +50,11 @@ dependencies {
     testImplementation(libs.spring.boot.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.kafka)
     testRuntimeOnly(libs.junit.platform.launcher)
     testRuntimeOnly(libs.junit.platform.engine)
+    testRuntimeOnly(libs.junit.platform.commons)
+    implementation(libs.spring.kafka.test)
 }
 
 tasks.test {
