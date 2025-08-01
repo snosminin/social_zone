@@ -35,6 +35,10 @@ public class User {
     @Column(name = "password_hash")
     private String passwordHash;
 
+    @Column(name = "role")
+    @Enumerated(value = EnumType.STRING)
+    private Role role;
+
     @OneToMany(mappedBy = "user")
     public Collection<Post> posts;
 
