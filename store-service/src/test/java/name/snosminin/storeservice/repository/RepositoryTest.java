@@ -1,7 +1,5 @@
 package name.snosminin.storeservice.repository;
 
-import java.util.List;
-
 import name.snosminin.storeservice.model.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +7,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.List;
 
+
+@Tag("testcontainers")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 class RepositoryTest {
+    @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
             "postgres:14.7-alpine"
     );
@@ -87,7 +90,7 @@ class RepositoryTest {
         user2.setPasswordHash("user2");
         user2.setRole(Role.ROLE_USER);
 
-        var users = List.of(user1,user2);
+        var users = List.of(user1, user2);
         userRepository.saveAll(users);
     }
 
@@ -104,7 +107,7 @@ class RepositoryTest {
         post2.setUserId(users.get(1).getId());
         post2.setText("Post 2 made by user 2");
 
-        var posts = List.of(post1,post2);
+        var posts = List.of(post1, post2);
         postRepository.saveAll(posts);
     }
 
@@ -120,7 +123,7 @@ class RepositoryTest {
         like2.setUser(users.get(1));
         like2.setPost(posts.get(0));
 
-        var likes = List.of(like1,like2);
+        var likes = List.of(like1, like2);
         likeRepository.saveAll(likes);
     }
 
@@ -135,7 +138,7 @@ class RepositoryTest {
         follow2.setFollower(users.get(1));
         follow2.setFollowee(users.get(0));
 
-        var follows = List.of(follow1,follow2);
+        var follows = List.of(follow1, follow2);
         followRepository.saveAll(follows);
     }
 
@@ -153,7 +156,7 @@ class RepositoryTest {
         comment2.setPost(posts.get(0));
         comment2.setText("Comment from user2 for post1");
 
-        var comments = List.of(comment1,comment2);
+        var comments = List.of(comment1, comment2);
         commentRepository.saveAll(comments);
     }
 }

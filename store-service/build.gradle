@@ -57,6 +57,21 @@ dependencies {
     implementation(libs.spring.kafka.test)
 }
 
+def onlyUnitTests = tasks.register("onlyUnitTests", Test) {
+    useJUnitPlatform {
+        includeTags "unitTest"
+    }
+}
+
+def allTests = tasks.register("allTests", Test) {
+    useJUnitPlatform {
+        includeTags "unitTest"
+        includeTags "testcontainers"
+    }
+}
+
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        includeTags "unitTest"
+    }
 }

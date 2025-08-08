@@ -5,6 +5,6 @@ import org.springframework.boot.SpringApplication;
 public class TestStoreServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.from(StoreServiceApplication::main).with(ContainersConfig.class).run(args);
+        SpringApplication.from(StoreServiceApplication::main).with(TestConfig.class).run(args);
     }
 }
