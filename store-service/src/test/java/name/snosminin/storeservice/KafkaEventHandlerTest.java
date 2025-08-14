@@ -20,7 +20,7 @@ import org.testcontainers.utility.DockerImageName;
 @TestPropertySource(
         properties = {
                 "spring.kafka.consumer.auto-offset-reset=earliest",
-                "jdbc:tc:postgresql:14.7-alpine:///social_zoe_d",
+                "jdbc:tc:postgresql:14.7-alpine:///social_zone_db",
         }
 )
 @Testcontainers
